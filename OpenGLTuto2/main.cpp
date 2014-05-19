@@ -5,6 +5,10 @@
 #include <iostream>
 #include <SOIL.h>
 
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
+#include <gtc/type_ptr.hpp>
+
 // SHADERS
 const GLchar* vertexSource =
 "#version 150 core\n"
@@ -13,10 +17,13 @@ const GLchar* vertexSource =
 "in vec2 texcoord;"
 "out vec3 Color;"
 "out vec2 Texcoord;"
+"uniform mat4 model;"
+"uniform mat4 view;"
+"uniform mat4 proj;"
 "void main() {"
 "	Texcoord = texcoord;"
 "	Color = color;"
-"	gl_Position = vec4(position, 1.0, 1.0);"
+"	gl_Position = proj * view * model * vec4(position, 0.0, 1.0);"
 "}";
 
 const GLchar* fragmentSource =
@@ -147,6 +154,26 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+	glm::mat4 model;
+	model = glm::rotate(model, 180.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+
+	glm::vec4 result = model * glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	printf("%f, %f, %f\n", result.x, result.y, result.z);
+
+	glm::mat4 view = glm::lookAt(
+		glm::vec3(1.2f, 1.2f, 1.2f),
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(0.0f, 0.0f, 1.0f)
+		);
+	GLint uniView = glGetUniformLocation(shaderProgram, "view");
+	glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(view));
+
+	glm::mat4 proj = glm::perspective(45.0f, 800.0f / 600.0f, 1.0f, 10.0f);
+	GLint uniProj = glGetUniformLocation(shaderProgram, "proj");
+	glUniformMatrix4fv(uniProj, 1, GL_FALSE, glm::value_ptr(proj));
+
+	GLint uniTrans = glGetUniformLocation(shaderProgram, "model");
+	glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(model));
 	GLint uniTime = glGetUniformLocation(shaderProgram, "time");
 	while (!glfwWindowShouldClose(window))
 	{
@@ -159,8 +186,14 @@ int main()
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glUniform1f(uniTime, (GLfloat)glfwGetTime());
 
+		glUniform1f(uniTime, (GLfloat)glfwGetTime());
+		model = glm::rotate(
+			model,
+			(float)glfwGetTime() * 0.007f,
+			glm::vec3(0.0f, 0.0f, 1.0f)
+			);
+		glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(model));
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 	}
