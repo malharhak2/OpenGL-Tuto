@@ -12,7 +12,7 @@
 // SHADERS
 const GLchar* vertexSource =
 "#version 150 core\n"
-"in vec2 position;"
+"in vec3 position;"
 "in vec3 color;"
 "in vec2 texcoord;"
 "out vec3 Color;"
@@ -23,7 +23,7 @@ const GLchar* vertexSource =
 "void main() {"
 "	Texcoord = texcoord;"
 "	Color = color;"
-"	gl_Position = proj * view * model * vec4(position, 0.0, 1.0);"
+"	gl_Position = proj * view * model * vec4(position, 1.0);"
 "}";
 
 const GLchar* fragmentSource =
@@ -35,14 +35,9 @@ const GLchar* fragmentSource =
 "uniform sampler2D texPuppy;"
 "uniform float time;"
 "void main() {"
-//"	float factor = (sin(time * 3.0) + 1.0) / 2.0;"
-//"	vec4 colKitten = texture(texKitten, Texcoord);"
-//"	vec4 colPuppy = texture(texPuppy, Texcoord);"
-//"   outColor = mix(colKitten, colPuppy, factor);"
-"   if (Texcoord.y < 0)"
-"       outColor = texture(texKitten, Texcoord);"
-"   else"
-"       outColor = texture(texKitten, vec2(Texcoord.x + sin(Texcoord.y * 60.0 + time * 2.0) / 30.0, Texcoord.y)) * vec4(0.7, 0.7, 1.0, 1.0);"
+"	vec4 texColor = mix(texture(texKitten, Texcoord),"
+"						texture(texPuppy, Texcoord), 0.5);"
+"outColor = vec4(Color, 1.0) * texColor;"
 "}";
 
 int main()
@@ -64,11 +59,55 @@ int main()
 	glGenBuffers(1, &vbo);
 
 	GLfloat vertices[] = {
-	//  Position	  Color			    Texcoords
-		-0.5f,  0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Top-left
-		 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // Top-right
-		 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // Bottom-right
-		-0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, // Bottom-left
+		-0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
+		0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
+		0.5f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+		0.5f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+		-0.5f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
+
+		-0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
+		0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
+		0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+		0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+		-0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+		-0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
+
+		-0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
+		-0.5f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+		-0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
+		-0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
+
+		0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
+		0.5f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+		0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+		0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+		0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
+		0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
+
+		-0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+		0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+		0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
+		0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
+		-0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+
+		-0.5f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+		0.5f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+		0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
+		0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
+		-0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
+		-0.5f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+
+		// FLoor
+		-1.0f, -1.0f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+		1.0f, -1.0f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+		1.0f, 1.0f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+		-1.0f, -1.0f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f
 	};
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -104,16 +143,16 @@ int main()
 	// Position vertex param
 	GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
 	glEnableVertexAttribArray(posAttrib);
-	glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 
-		7 * sizeof(GLfloat), 0);
+	glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 
+		8 * sizeof(GLfloat), 0);
 	// Color vertex param
 	GLint colAttrib = glGetAttribLocation(shaderProgram, "color");
 	glEnableVertexAttribArray(colAttrib);
-	glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
+	glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
 	// UV vertex param
 	GLint texAttrib = glGetAttribLocation(shaderProgram, "texcoord");
 	glEnableVertexAttribArray(texAttrib);
-	glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (void*)(5 * sizeof (GLfloat)));
+	glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof (GLfloat)));
 
 	// Texture creation and loading
 	GLuint tex;
@@ -161,7 +200,7 @@ int main()
 	printf("%f, %f, %f\n", result.x, result.y, result.z);
 
 	glm::mat4 view = glm::lookAt(
-		glm::vec3(1.2f, 1.2f, 1.2f),
+		glm::vec3(3.0f, 3.0f, 3.0f),
 		glm::vec3(0.0f, 0.0f, 0.0f),
 		glm::vec3(0.0f, 0.0f, 1.0f)
 		);
@@ -175,6 +214,11 @@ int main()
 	GLint uniTrans = glGetUniformLocation(shaderProgram, "model");
 	glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(model));
 	GLint uniTime = glGetUniformLocation(shaderProgram, "time");
+
+	glEnable(GL_DEPTH_TEST);
+	float lastTime = (float)glfwGetTime();
+	float currentTime = lastTime;
+	float deltaTime = 0;
 	while (!glfwWindowShouldClose(window))
 	{
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -183,19 +227,37 @@ int main()
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 		
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		// clear screen
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		lastTime = currentTime;
+		currentTime = (float)glfwGetTime();
+		deltaTime = currentTime - lastTime;
 
-
-		glUniform1f(uniTime, (GLfloat)glfwGetTime());
+		// Draw main
 		model = glm::rotate(
 			model,
-			(float)glfwGetTime() * 0.007f,
+			deltaTime * 180.0f,
 			glm::vec3(0.0f, 0.0f, 1.0f)
 			);
 		glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(model));
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 
+		// Draw floor
+		glEnable(GL_STENCIL_TEST);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		glStencilMask(0xFF);
+		glDepthMask(GL_FALSE);
+		glDrawArrays(GL_TRIANGLES, 36, 6);
+		glDepthMask(GL_TRUE);
+
+		model = glm::scale(
+			glm::translate(model, glm::vec3(0, 0, -1)),
+			glm::vec3(1, 1, -1)
+			);
+		glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(model));
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 	}
 	glfwTerminate();
 
