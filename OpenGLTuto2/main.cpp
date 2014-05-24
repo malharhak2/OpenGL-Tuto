@@ -20,9 +20,10 @@ const GLchar* vertexSource =
 "uniform mat4 model;"
 "uniform mat4 view;"
 "uniform mat4 proj;"
+"uniform vec3 overrideColor;"
 "void main() {"
 "	Texcoord = texcoord;"
-"	Color = color;"
+"	Color = color * overrideColor;"
 "	gl_Position = proj * view * model * vec4(position, 1.0);"
 "}";
 
@@ -48,6 +49,8 @@ int main()
 
 	glewExperimental = GL_TRUE;
 	glewInit();
+
+	glEnable(GL_DEPTH_TEST);
 
 	// Create Vertex Array Object
 	GLuint vao;
@@ -113,15 +116,7 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	// Element buffer
-	GLuint elements[] = {
-		0, 1, 2,
-		2, 3, 0
-	};
-	GLuint ebo;
-	glGenBuffers(1, &ebo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof (elements), elements, GL_STATIC_DRAW);
+
 	// Vertex Shader
 	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertexShader, 1, &vertexSource, NULL);
@@ -200,7 +195,7 @@ int main()
 	printf("%f, %f, %f\n", result.x, result.y, result.z);
 
 	glm::mat4 view = glm::lookAt(
-		glm::vec3(3.0f, 3.0f, 3.0f),
+		glm::vec3(2.5f, 2.5f, 2.5f),
 		glm::vec3(0.0f, 0.0f, 0.0f),
 		glm::vec3(0.0f, 0.0f, 1.0f)
 		);
@@ -215,7 +210,9 @@ int main()
 	glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(model));
 	GLint uniTime = glGetUniformLocation(shaderProgram, "time");
 
-	glEnable(GL_DEPTH_TEST);
+	GLint uniColor = glGetUniformLocation(shaderProgram, "overrideColor");
+
+
 	float lastTime = (float)glfwGetTime();
 	float currentTime = lastTime;
 	float deltaTime = 0;
@@ -245,11 +242,18 @@ int main()
 
 		// Draw floor
 		glEnable(GL_STENCIL_TEST);
+
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 		glStencilMask(0xFF);
 		glDepthMask(GL_FALSE);
+		glClear(GL_STENCIL_BUFFER_BIT);
+
 		glDrawArrays(GL_TRIANGLES, 36, 6);
+		
+		// Cube reflection
+		glStencilFunc(GL_EQUAL, 1, 0xFF);
+		glStencilMask(0x00);
 		glDepthMask(GL_TRUE);
 
 		model = glm::scale(
@@ -257,7 +261,11 @@ int main()
 			glm::vec3(1, 1, -1)
 			);
 		glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(model));
+		glUniform3f(uniColor, 0.3f, 0.3f, 0.3f);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glUniform3f(uniColor, 1.0f, 1.0f, 1.0f);
+
+		glDisable(GL_STENCIL_TEST);
 	}
 	glfwTerminate();
 
@@ -266,7 +274,6 @@ int main()
 	glDeleteShader(fragmentShader);
 	glDeleteShader(vertexShader);
 
-	glDeleteBuffers(1, &ebo);
 	glDeleteBuffers(1, &vbo);
 
 	glDeleteVertexArrays(1, &vao);
